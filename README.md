@@ -1,12 +1,12 @@
-# estat-census-mesh-2020
+# estat-census-mesh-500m-2020
 
-A reproducible copy of the 2020 census (令和2年国勢調査) of Japan tabulated by 1 km
+A reproducible copy of the 2020 census (令和2年国勢調査) of Japan tabulated by 500m
 grid square, from the statistical GIS of e-Stat (政府統計の総合窓口). The Hugging Face
-dataset is <https://huggingface.co/datasets/yuiseki/estat-census-mesh-2020>.
+dataset is <https://huggingface.co/datasets/yuiseki/estat-census-mesh-500m-2020>.
 
 ## Source
 
-<https://www.e-stat.go.jp/gis/statmap-search?page=1&type=1&toukeiCode=00200521&toukeiYear=2020&aggregateUnit=S&serveyId=S002005112020&statsId=T001100>
+<https://www.e-stat.go.jp/gis/statmap-search?page=1&type=1&toukeiCode=00200521&toukeiYear=2020&aggregateUnit=H&serveyId=H002005112020&statsId=T001101>
 
 Six tables, each published on JGD2000 and on JGD2011, one zip per prefecture
 (12 x 47 = 564 files). The two datums are not the same data; keep them apart.

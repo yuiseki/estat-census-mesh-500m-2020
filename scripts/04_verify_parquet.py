@@ -24,17 +24,21 @@ def main() -> int:
     info = json.loads((ROOT / "data" / "parquet" / "columns.json").read_text())
     errors = rows = 0
     for stats_id, meta in info.items():
-        t = pq.read_table(ROOT / "data" / "parquet" / f"{stats_id}.parquet").to_pylist()
+        pf = pq.ParquetFile(ROOT / "data" / "parquet" / f"{stats_id}.parquet")
         keys = sorted(k for k in manifest["files"] if k.startswith(stats_id + "/"))
-        expect = []
-        for key in keys:
+        n = 0
+        ok = pf.num_row_groups == len(keys)
+        for g, key in enumerate(keys if ok else []):  # one row group per prefecture
             code = key.removesuffix(".zip")[-2:]
             ids, _, body = m.parse_table((raw / m.UNIT / key).read_bytes(), stats_id, code)
-            expect += [{"prefecture": code, **dict(zip(ids, r, strict=True))} for r in body]
-        ok = t == expect and len(t) == meta["rows"]
+            want = [{"prefecture": code, **dict(zip(ids, r, strict=True))} for r in body]
+            got = pf.read_row_group(g).to_pylist()
+            ok = ok and got == want
+            n += len(got)
+        ok = ok and n == meta["rows"]
         errors += not ok
-        rows += len(t)
-        print(f"{'ok ' if ok else 'BAD'} {stats_id} {len(t):,} rows")
+        rows += n
+        print(f"{'ok ' if ok else 'BAD'} {stats_id} {n:,} rows")
     print(f"{len(info)} tables, {rows:,} rows, {errors} errors")
     return 1 if errors else 0
 

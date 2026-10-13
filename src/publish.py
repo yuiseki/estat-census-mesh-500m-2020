@@ -19,7 +19,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
-REPO = "yuiseki/estat-census-mesh-2020"
+REPO = "yuiseki/estat-census-mesh-500m-2020"
 DELETE_PATTERNS = ["raw/**", "parquet/**"]
 
 
@@ -54,11 +54,11 @@ def collect(data: Path) -> list[str]:
         raise SystemExit(f"the card does not give the row total {rows:,}")
     files = ["README.md", "LICENSE", "provenance.yaml", f"raw/{d.name}/MANIFEST.json"]
     for key, e in manifest["files"].items():
-        path = d / "S" / key
+        path = d / "H" / key
         if sha256(path) != e["sha256"]:
             raise SystemExit(f"{path} is not the file in its manifest")
         files.append(path.relative_to(data).as_posix())
-    stray = {p.relative_to(data).as_posix() for p in (d / "S").rglob("*") if p.is_file()} - set(
+    stray = {p.relative_to(data).as_posix() for p in (d / "H").rglob("*") if p.is_file()} - set(
         files
     )
     if stray:

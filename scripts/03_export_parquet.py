@@ -39,36 +39,41 @@ def main() -> int:
             return 1
         ids: list[str] | None = None
         labels: list[str] = []
-        cols: list[list[str]] = []
-        prefs: list[str] = []
+        writer = None
+        total = 0
         for key in keys:
             code = key.removesuffix(".zip")[-2:]
             i, lab, rows = m.parse_table((raw / m.UNIT / key).read_bytes(), stats_id, code)
             if ids is None:
                 ids, labels = i, lab
-                cols = [[] for _ in ids]
             elif i != ids or lab != labels:
                 print(f"{key}: columns differ from the first prefecture", file=sys.stderr)
                 return 1
-            for r in rows:
-                for c, v in zip(cols, r, strict=True):
-                    c.append(v)
-            prefs += [code] * len(rows)
-        assert ids is not None
-        table = pa.table(
-            [pa.array(prefs, pa.string()), *[pa.array(c, pa.string()) for c in cols]],
-            names=["prefecture", *ids],
-        )
-        pq.write_table(table, out / f"{stats_id}.parquet", compression="zstd")
+            cols = list(zip(*rows, strict=True)) if rows else [()] * len(ids)
+            part = pa.table(
+                [
+                    pa.array([code] * len(rows), pa.string()),
+                    *[pa.array(c, pa.string()) for c in cols],
+                ],
+                names=["prefecture", *ids],
+            )
+            if writer is None:
+                writer = pq.ParquetWriter(
+                    out / f"{stats_id}.parquet", part.schema, compression="zstd"
+                )
+            writer.write_table(part)  # one row group per prefecture
+            total += part.num_rows
+        assert ids is not None and writer is not None
+        writer.close()
         t = manifest["tables"][next(k for k in manifest["tables"] if k.startswith(stats_id))]
         datum = manifest["files"][keys[0]]["datum"]
         info[stats_id] = {
             "name": t["name"],
             "datum": f"JGD{datum}",
-            "rows": table.num_rows,
+            "rows": total,
             "columns": dict(zip(ids, labels, strict=True)),
         }
-        print(f"{stats_id} {table.num_rows:,} rows, {len(ids)} columns")
+        print(f"{stats_id} {total:,} rows, {len(ids)} columns")
     (out / "columns.json").write_text(
         json.dumps(info, ensure_ascii=False, indent=1) + "\n", encoding="utf-8"
     )

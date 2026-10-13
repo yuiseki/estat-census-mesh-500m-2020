@@ -17,7 +17,7 @@ TERMS = "https://www.e-stat.go.jp/terms-of-use"
 Q_AND_A = "https://www.stat.go.jp/data/mesh/pdf/ryuijikou.pdf"
 HELP = "https://www.e-stat.go.jp/help/data-definition-information/downloaddata/help_mesh_2011.pdf"
 GIS_TERMS = "https://www.e-stat.go.jp/gis-terms"
-PAGE = "https://www.e-stat.go.jp/gis/statmap-search?page=1&type=1&toukeiCode=00200521&toukeiYear=2020&aggregateUnit=S&serveyId=S002005112020&statsId=T001100"
+PAGE = "https://www.e-stat.go.jp/gis/statmap-search?page=1&type=1&toukeiCode=00200521&toukeiYear=2020&aggregateUnit=H&serveyId=H002005112020&statsId=T001101"
 
 
 def facts() -> dict:
@@ -54,13 +54,13 @@ tags:
 - mesh
 - population
 - e-stat
-pretty_name: 2020 Japan census, 1 km grid-square statistics
+pretty_name: 2020 Japan census, 500m grid-square statistics
 ---
 
-# estat-census-mesh-2020
+# estat-census-mesh-500m-2020
 
-The 2020 census (令和2年国勢調査) of Japan, tabulated by 3rd-order grid square (the 1 km
-mesh, 基準地域メッシュ), as published by the Statistics Bureau of Japan through e-Stat's
+The 2020 census (令和2年国勢調査) of Japan, tabulated by grid square of 500m
+(the 2分の1地域メッシュ, a quarter of a 1 km mesh), as published by the Statistics Bureau of Japan through e-Stat's
 statistical GIS. {len(f["cols"])} tables x 47 prefectures = {f["files"]} files, {f["rows"]:,}
 rows, fetched on {f["fetched"]} (the source lists them as updated {", ".join(f["updated"])}).
 
@@ -81,7 +81,7 @@ the assignment of small areas to meshes (同定, {HELP}): a small area that lies
 mesh in JGD2000 may straddle two in JGD2011 and is then split between them in proportion.
 This copy agrees with that list: in each of the six tables exactly those 20 prefectures
 differ between the two versions (checked file by file), and in the total-population column
-the number of differing meshes runs from 81 (Fukui) to 2,164 (Miyagi). Each prefecture's total
+the number of differing meshes runs from 214 (Fukui) to 5,137 (Miyagi). Each prefecture's total
 population is the same in both versions, so people are moved between meshes, not added.
 Meshes with no
 population have no record, so a few mesh codes exist in only one of the two versions.
@@ -92,13 +92,13 @@ use JGD2000. The `datum` column of the table list below says which tables are wh
 
 ```
 raw/{f["run"]}/MANIFEST.json                 url, size, sha256, fetch time and row count of every file
-raw/{f["run"]}/S/<table>/tbl<table>S<pref>.zip   {f["files"]} files, {f["bytes"] / 1e6:.0f} MB, exactly as e-Stat serves them
+raw/{f["run"]}/H/<table>/tbl<table>H<pref>.zip   {f["files"]} files, {f["bytes"] / 1e6:.0f} MB, exactly as e-Stat serves them
 parquet/<table>.parquet                      one file per table, 47 prefectures each
 parquet/columns.json                         each table's name, datum and the label of every column
 ```
 
 The raw files are zips of one cp932 CSV each: a header line of column ids, a line of
-Japanese column labels, then one row per mesh. `KEY_CODE` is the 8-digit mesh code.
+Japanese column labels, then one row per mesh. `KEY_CODE` is the mesh code.
 `HTKSYORI`, `HTKSAKI` and `GASSAN` are the source's flags; in the files, `HTKSYORI` is
 `0` for most rows and `2` for rows that carry the code of another mesh in `HTKSAKI`. The
 Bureau's Q&A says that the values of a mesh too small to publish are hidden (`*`) and added
@@ -124,12 +124,12 @@ processed. The terms are compatible with CC BY 4.0, and the statistical GIS term
 therefore marked CC BY 4.0. The terms add that the government takes no responsibility for what
 is done with the data, and that content may be changed or deleted without notice.
 
-Collection code: <https://github.com/yuiseki/estat-census-mesh-2020> (MIT).
+Collection code: <https://github.com/yuiseki/estat-census-mesh-500m-2020> (MIT).
 """
 
 
 def provenance(f: dict) -> str:
-    return f"""source: 政府統計の総合窓口 (e-Stat) 統計GIS, 令和2年国勢調査, 3次メッシュ (1km)
+    return f"""source: 政府統計の総合窓口 (e-Stat) 統計GIS, 令和2年国勢調査, 500m メッシュ
 url: {PAGE}
 retrieved: {f["fetched"]}
 run: {f["run"]}
